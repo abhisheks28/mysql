@@ -1,0 +1,97 @@
+SELECT ename,deptno,job FROM employee where deptno=10 and job='manager';
+select * from employee;
+select sal,deptno,job from employee where job in('clerk','salesman') AND deptno IN (10,30);
+
+/* LIKE WILDCARD CHARACTER */
+
+select ename from employee where ename like ('s%');
+select ename from employee where ename like('%a');
+select ename from employee where ename like('_m%');
+select ename from employee where hiredate like('%-04-%');
+select ename from employee where ename like('%a%a%');
+select count(ename) from employee where ename like('%e%');
+
+/* AGGREGATE FUNCTIONS */
+
+select avg(sal) as averagesal,sum(sal) as totalsalary,count(ename) as noofemp,max(sal) as maxsal from employee where job='president';
+select deptno,min(sal) from employee group by deptno order by deptno desc;
+select job,max(sal),deptno from employee group by job,deptno order by max(sal) desc;
+select count(ename),job from employee where ename like('%a%') group by job order by job;
+select count(ename),job from employee where ename like('%a%') group by job order by job desc;
+select count(ename),deptno from employee  group by deptno having count(deptno)>=3;
+
+/* SUBQUERY */
+
+select ename from employee where  sal=(select  sal from employee where ename='miller');
+select ename,deptno from employee where deptno=(select deptno from employee where ename='smith');
+select ename,hiredate from employee where  hiredate>(select hiredate from employee where ename='jones');
+select ename,sal,deptno from employee where sal>2000 and deptno=(select deptno from employee where  ename='james');
+select* from employee where sal>(select sal from employee where ename='smith') and sal<(select sal from employee where ename='king');
+select ename from employee where deptno=(select deptno from employee where ename='james')and sal>(select sal from employee where ename='smith')and job=(select job from employee where ename='miller')and hiredate>(select hiredate from employee where ename='martin');
+select dname from department where deptno=(select deptno from employee where ename='miller');
+select count(ename) from employee where deptno=(select deptno from department where dname='accounting');
+select* from employee where  job=(select job from employee where ename='miller')and deptno=(select deptno from department where loc='new york');
+
+/* ALL , ANY OPERATORS  */ 
+
+select ename from employee where sal>(select max(sal) from employee where  job='salesman');
+select * from employee where hiredate >all(select hiredate from employee where job='clerk');
+select ename,sal from employee where sal<all(select sal from employee where job='manager');
+select ename,hiredate from employee where hiredate<all(select hiredate from employee where job='manager');
+select ename from employee where hiredate<all(select hiredate from employee where job='manager' and sal>all(select  sal from employee where job='clerk'));
+select* from employee where job='clerk'and hiredate<all(select hiredate from employee where job='salesman');
+select * from employee where deptno=any(select deptno from department where dname='accounting' or dname='sales');
+select dname from department where deptno=any(select deptno from employee where ename='smith' or ename='king' or ename='miller');
+select * from employee where deptno=(select deptno from department where loc='new york') or deptno=(select deptno from department where loc='chicago');
+select ename from employee where hiredate>all(select hiredate from employee where deptno=10); 
+/* INTERVIEW */
+select sal from employee where sal<(select max(sal) from employee)order by sal desc limit 1;
+select max(sal) from employee where sal<(select max(sal) from employee);
+
+/* JOINS */  
+
+select e.ename,d.deptno from employee e cross join department d;
+select e.ename,d.deptno from employee e inner join department d on e.deptno=d.deptno; 
+select e.ename,d.loc from employee e inner join department d on  e.deptno=d.deptno where job='manager';
+select e.ename,e.sal,d.dname from employee e inner join department d on e.deptno=d.deptno;
+select e.sal,d.dname from employee e inner join department d on e.deptno=d.deptno where job='accounting';
+select e.job,d.dname from employee e inner join department d on e.deptno=d.deptno where d.dname like('s%') and e.job like('s%');
+
+select * from  employee e right join  department d on e.deptno=d.deptno; 
+select * from department d right join  employee e   on e.deptno=d.deptno;    /* right join */
+
+select * from  employee e left join  department d on e.deptno=d.deptno; 
+select * from  department d left join  employee e   on e.deptno=d.deptno;    /* left join */
+
+select * from department d right join  employee e   on e.deptno=d.deptno 
+union all                                                                   /* full outer join */
+ select * from  department d left join  employee e   on e.deptno=d.deptno;
+ 
+ /* SELF JOIN */
+ select * from    employee e  join employee d on e.empno=d.mgr;
+ select e.ename,e.sal,d.ename,d.sal from employee e join employee d on e.empno=d.mgr;
+ select e.ename,d.ename,e.deptno from employee e join employee d on e.empno=d.mgr where d.job='clerk';
+ select e.ename,d.job from employee e join  employee d on d.empno=e.mgr where e.job='analyst';
+ select e.ename,e.job,d.ename,d.job from employee e join employee d on d.empno=e.mgr where d.job=e.job;
+ select e.ename,e.sal,d.ename,d.sal from employee e join employee d on d.empno=e.mgr where d.sal>e.sal;
+ select e.ename,d.job from employee e  join employee d on d.deptno=e.deptno where e.deptno in(10,20);
+ 
+ /* NATURAL JOIN */
+ select * from employee e natural join department d;
+ select e.ename,e.sal,d.dname from employee e natural join department d order by e.sal desc;
+ select d.dname,avg(e.sal) from employee e natural join department d where hiredate>'1980-12-31' group by d.deptno order by avg(e.sal) desc;
+ select e.ename,e.sal,d.dname from employee e natural join department d where e.deptno=(select e.deptno from employee e where e.job='president')order by e.sal desc;
+ select e.ename,e2.ename,e.hiredate,d.dname from employee e  natural join department d join employee e2 on e.deptno=e2.deptno and e.hiredate=e2.hiredate and e.empno<>e2.empno;  
+ 
+ /* length,cancat,upper,lower,initcap,reverse */
+ 
+ select length(ename) from employee where ename='smith';
+ select concat(ename) from employee where ename='smith';
+ select upper(ename) from employee where ename='smith';
+ select lower(ename) from employee where ename='smith';
+ select reverse(ename) from employee where ename='smith';
+ 
+ 
+ 
+ create view deptandemp as select* from employee natural join department;
+ select* from deptandemp;
